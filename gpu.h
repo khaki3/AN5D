@@ -162,6 +162,9 @@ struct gpu_prog {
 
 	struct ppcg_scop *scop;
 
+	/* A schedule_node that is computed by get_schedule() */
+	isl_schedule_node *original_schedule_node;
+
 	/* Set of parameter values */
 	isl_set *context;
 
@@ -431,5 +434,7 @@ int generate_gpu(isl_ctx *ctx, const char *input, FILE *out,
 __isl_give isl_schedule_node *gpu_create_kernel(struct gpu_gen *gen,
 	__isl_take isl_schedule_node *node, int scale,
 	__isl_keep isl_multi_val *sizes);
+
+const char *get_outer_array_name(__isl_keep isl_map *access);
 
 #endif

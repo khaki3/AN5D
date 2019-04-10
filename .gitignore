@@ -23,6 +23,9 @@ m4/lt~obsolete.m4
 missing
 ppcg
 test-driver
+*.o
 
 opencl_test.sh
 polybench_test.sh
+
+an5d

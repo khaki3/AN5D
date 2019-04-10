@@ -7,10 +7,12 @@ Requirements:
 - gmp (http://gmplib.org/)
 - libyaml (http://pyyaml.org/wiki/LibYAML)
 	(only needed if you want to compile the pet executable)
-- LLVM/clang libraries, 2.9 or higher (http://clang.llvm.org/get_started.html)
+- LLVM/clang libraries, 3.4 ~ 3.9 (http://clang.llvm.org/get_started.html)
 	Unless you have some other reasons for wanting to use the svn version,
 	it is best to install the latest release (3.9).
 	For more details, see pet/README.
+- GCC, 4.9 or lower
+	For ABI compatibility with LLVM.
 
 If you are installing on Ubuntu, then you can install the following packages:
 
@@ -34,9 +36,9 @@ automake, libtool and pkg-config.
 	./autogen.sh
 
 
-Compilation:
+Compilation (with GCC 4.8):
 
-	./configure
+	CC=gcc-4.8 CXX=g++-4.8 ./configure
 	make
 	make check
 

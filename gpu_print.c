@@ -49,7 +49,7 @@ __isl_give isl_printer *gpu_array_info_print_size(__isl_take isl_printer *prn,
 	for (i = 0; i < array->n_index; ++i) {
 		isl_ast_expr *bound;
 
-		prn = isl_printer_print_str(prn, "(");
+		prn = isl_printer_print_str(prn, "(size_t)(");
 		bound = isl_ast_expr_get_op_arg(array->bound_expr, 1 + i);
 		prn = isl_printer_print_ast_expr(prn, bound);
 		isl_ast_expr_free(bound);

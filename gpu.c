@@ -40,7 +40,7 @@ struct gpu_array_info;
 
 /* Return the name of the outer array (of structs) accessed by "access".
  */
-static const char *get_outer_array_name(__isl_keep isl_map *access)
+const char *get_outer_array_name(__isl_keep isl_map *access)
 {
 	isl_space *space;
 	const char *name;
@@ -1452,7 +1452,7 @@ static struct gpu_stmt_access *find_access(struct gpu_stmt_access *accesses,
 
 /* Return the index of the array called "name" in the list of arrays.
  */
-static int find_array_index(struct ppcg_kernel *kernel, const char *name)
+int find_array_index(struct ppcg_kernel *kernel, const char *name)
 {
 	int i;
 
@@ -4120,12 +4120,17 @@ static __isl_give isl_schedule_node *mark_outer_permutable(
 	if (!outer)
 		return node;
 
-	if (gen->options->hybrid) {
-		isl_schedule_node *saved = isl_schedule_node_copy(node);
-		node = try_hybrid_tile(gen, node);
-		isl_schedule_node_free(saved);
-		if (node != saved)
-			return node;
+	/* if (gen->options->hybrid) { */
+	/* 	isl_schedule_node *saved = isl_schedule_node_copy(node); */
+	/* 	node = try_hybrid_tile(gen, node); */
+	/* 	isl_schedule_node_free(saved); */
+	/* 	if (node != saved) */
+	/* 		return node; */
+	/* } */
+
+	if (ppcg_ht_parent_has_input_pattern(node) > 0) {
+		node = isl_schedule_node_parent(node);
+		gen->prog->original_schedule_node = isl_schedule_node_copy(node);
 	}
 
 	if (isl_schedule_node_get_type(node) != isl_schedule_node_band ||
@@ -5840,6 +5845,7 @@ void *gpu_prog_free(struct gpu_prog *prog)
 	if (!prog)
 		return NULL;
 	free_array_info(prog);
+	isl_schedule_node_free(prog->original_schedule_node);
 	free_stmts(prog->stmts, prog->n_stmts);
 	isl_union_map_free(prog->any_to_outer);
 	isl_union_map_free(prog->to_outer);

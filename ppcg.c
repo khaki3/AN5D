@@ -404,7 +404,8 @@ static void compute_live_out(struct ppcg_scop *ps)
 
 	covering = isl_union_map_range_factor_range(covering);
 	exposed = isl_union_map_copy(ps->may_writes);
-	exposed = isl_union_map_subtract(exposed, covering);
+	/* exposed = isl_union_map_subtract(exposed, covering); */
+	isl_union_map_free(covering);
 	ps->live_out = exposed;
 }
 

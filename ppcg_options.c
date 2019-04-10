@@ -75,6 +75,27 @@ ISL_ARG_BOOL(struct ppcg_options, opencl_embed_kernel_code, 0,
 	"embed-kernel-code", 0, "embed kernel code into host code")
 ISL_ARGS_END
 
+ISL_ARGS_START(struct ppcg_options, ppcg_an5d_options_args)
+ISL_ARG_INT(struct ppcg_options, an5d_bt, 0,
+	"bt", "size", 4, "Temporal blocking size")
+ISL_ARG_INT(struct ppcg_options, an5d_bs1, 0,
+	"bs1", "size", 32, "Spatial blocking size along 1st dimension (the fastest varying dimension)")
+ISL_ARG_INT(struct ppcg_options, an5d_bs2, 0,
+	"bs2", "size", 32, "Spatial blocking size along 2nd dimension")
+ISL_ARG_INT(struct ppcg_options, an5d_bs3, 0,
+	"bs3", "size", -1, "Spatial blocking size along 3rd dimension")
+ISL_ARG_INT(struct ppcg_options, an5d_sl, 0,
+	"sl", "size", 128, "Streaming length for each block")
+ISL_ARG_BOOL(struct ppcg_options, an5d_ds, 0, "ds", 0,
+	"Disable streaming computation")
+ISL_ARG_BOOL(struct ppcg_options, an5d_nakata, 0, "nakata", 0,
+	"Enable Nakata's register scheduling")
+ISL_ARG_BOOL(struct ppcg_options, an5d_sm_vec, 0, "sm_vec", 0,
+	"Enable vector loading for shared memory")
+ISL_ARG_STR(struct ppcg_options, an5d_opt, 0, "opt", "algorithm", NULL,
+	"Primary optimization for stream computation (nondiag|assoc|none)")
+ISL_ARGS_END
+
 ISL_ARGS_START(struct ppcg_options, ppcg_options_args)
 ISL_ARG_CHILD(struct ppcg_options, isl, "isl", &isl_options_args, "isl options")
 ISL_ARG_CHILD(struct ppcg_options, debug, NULL, &ppcg_debug_options_args,
@@ -133,4 +154,5 @@ ISL_ARG_STR(struct ppcg_options, save_schedule_file, 0, "save-schedule",
 ISL_ARG_STR(struct ppcg_options, load_schedule_file, 0, "load-schedule",
 	"file", NULL, "load schedule from <file>, "
 	"using it instead of an isl computed schedule")
+ISL_ARG_GROUP(NULL, &ppcg_an5d_options_args, "AN5D options")
 ISL_ARGS_END

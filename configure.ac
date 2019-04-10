@@ -5,8 +5,13 @@ AM_INIT_AUTOMAKE([foreign])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 
 AC_PROG_CC
+AC_PROG_CC_C99
 AC_PROG_LIBTOOL
 PKG_PROG_PKG_CONFIG
+
+if test "x$ac_cv_prog_cc_c99" = xno; then
+  AC_MSG_ERROR([A C99 compatible compiler is required])
+fi
 
 AX_CHECK_OPENMP
 AX_CHECK_OPENCL

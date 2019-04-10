@@ -1,6 +1,8 @@
 [submodule "isl"]
 	path = isl
 	url = git://repo.or.cz/isl.git
+	ignore = dirty
 [submodule "pet"]
 	path = pet
-	url = git://repo.or.cz/pet.git
+	url = git@github.com:khaki3/pet.git
+	ignore = dirty

@@ -11,7 +11,7 @@
  * Ecole Normale Superieure, 45 rue d'Ulm, 75230 Paris, France
  */
 
-#include <limits.h>
+#include <linux/limits.h>
 #include <stdio.h>
 #include <string.h>
 

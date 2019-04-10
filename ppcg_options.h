@@ -85,6 +85,17 @@ struct ppcg_options {
 	char *save_schedule_file;
 	/* Name of file for loading schedule or NULL. */
 	char *load_schedule_file;
+
+  /* AN5D args */
+  int an5d_bt;
+  int an5d_bs1;
+  int an5d_bs2;
+  int an5d_bs3;
+  int an5d_sl;
+  int an5d_ds;
+  int an5d_nakata;
+  int an5d_sm_vec;
+  char *an5d_opt;
 };
 
 ISL_ARG_DECL(ppcg_debug_options, struct ppcg_debug_options,

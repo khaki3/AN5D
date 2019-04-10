@@ -17,6 +17,11 @@
 #include "print.h"
 #include "util.h"
 
+#define P_PUTS(p, str) do {                   \
+  p = isl_printer_print_str(p, str);          \
+  p = isl_printer_end_line(p);                \
+  } while (0)
+
 static __isl_give isl_printer *print_cuda_macros(__isl_take isl_printer *p)
 {
 	const char *macros =
@@ -138,6 +143,8 @@ static __isl_give isl_printer *free_device_arrays(__isl_take isl_printer *p,
 static __isl_give isl_printer *copy_array_to_device(__isl_take isl_printer *p,
 	struct gpu_array_info *array)
 {
+	P_PUTS(p, "{");
+
 	p = isl_printer_start_line(p);
 	p = isl_printer_print_str(p, "cudaCheckReturn(cudaMemcpy(dev_");
 	p = isl_printer_print_str(p, array->name);
@@ -152,6 +159,14 @@ static __isl_give isl_printer *copy_array_to_device(__isl_take isl_printer *p,
 	p = isl_printer_print_str(p, ", cudaMemcpyHostToDevice));");
 	p = isl_printer_end_line(p);
 
+	/* FOR POLYBENCH */
+	P_PUTS(p, "#ifdef STENCILBENCH");
+	P_PUTS(p, "cudaDeviceSynchronize();");
+	P_PUTS(p, "SB_START_INSTRUMENTS;");
+	P_PUTS(p, "#endif");
+
+	P_PUTS(p, "}");
+
 	return p;
 }
 
@@ -163,6 +178,14 @@ static __isl_give isl_printer *copy_array_to_device(__isl_take isl_printer *p,
 static __isl_give isl_printer *copy_array_from_device(
 	__isl_take isl_printer *p, struct gpu_array_info *array)
 {
+	P_PUTS(p, "{");
+
+	/* FOR POLYBENCH */
+	P_PUTS(p, "#ifdef STENCILBENCH");
+	P_PUTS(p, "cudaDeviceSynchronize();");
+	P_PUTS(p, "SB_STOP_INSTRUMENTS;");
+	P_PUTS(p, "#endif");
+
 	p = isl_printer_start_line(p);
 	p = isl_printer_print_str(p, "cudaCheckReturn(cudaMemcpy(");
 	if (gpu_array_is_scalar(array))
@@ -174,6 +197,8 @@ static __isl_give isl_printer *copy_array_from_device(
 	p = gpu_array_info_print_size(p, array);
 	p = isl_printer_print_str(p, ", cudaMemcpyDeviceToHost));");
 	p = isl_printer_end_line(p);
+
+	P_PUTS(p, "}");
 
 	return p;
 }
@@ -248,7 +273,7 @@ static __isl_give isl_printer *print_grid(__isl_take isl_printer *p,
  * - the parameters
  * - the host loop iterators
  */
-static __isl_give isl_printer *print_kernel_arguments(__isl_take isl_printer *p,
+__isl_give isl_printer *print_kernel_arguments(__isl_take isl_printer *p,
 	struct gpu_prog *prog, struct ppcg_kernel *kernel, int types)
 {
 	int i, n;
@@ -334,7 +359,7 @@ static __isl_give isl_printer *print_kernel_header(__isl_take isl_printer *p,
 /* Print the header of the given kernel to both gen->cuda.kernel_h
  * and gen->cuda.kernel_c.
  */
-static void print_kernel_headers(struct gpu_prog *prog,
+void print_kernel_headers(struct gpu_prog *prog,
 	struct ppcg_kernel *kernel, struct cuda_info *cuda)
 {
 	isl_printer *p;
@@ -452,7 +477,7 @@ static __isl_give isl_printer *print_sync(__isl_take isl_printer *p,
 /* This function is called for each user statement in the AST,
  * i.e., for each kernel body statement, copy statement or sync statement.
  */
-static __isl_give isl_printer *print_kernel_stmt(__isl_take isl_printer *p,
+__isl_give isl_printer *print_kernel_stmt(__isl_take isl_printer *p,
 	__isl_take isl_ast_print_options *print_options,
 	__isl_keep isl_ast_node *node, void *user)
 {
@@ -582,6 +607,49 @@ struct print_host_user_data {
 	struct gpu_prog *prog;
 };
 
+static __isl_give isl_printer *print_grid_and_block(__isl_take isl_printer *p,
+  struct ppcg_kernel *kernel)
+{
+	p = isl_printer_start_line(p);
+	p = isl_printer_print_str(p, "dim3 k");
+	p = isl_printer_print_int(p, kernel->id);
+	p = isl_printer_print_str(p, "_dimBlock");
+	print_reverse_list(isl_printer_get_file(p),
+				kernel->n_block, kernel->block_dim);
+	p = isl_printer_print_str(p, ";");
+	p = isl_printer_end_line(p);
+
+	p = print_grid(p, kernel);
+
+	return p;
+}
+
+static __isl_give isl_printer *print_launch(__isl_take isl_printer *p,
+  struct gpu_prog *prog, struct ppcg_kernel *kernel)
+{
+	p = ppcg_start_block(p);
+  
+	p = isl_printer_start_line(p);
+	p = isl_printer_print_str(p, "kernel");
+	p = isl_printer_print_int(p, kernel->id);
+	p = isl_printer_print_str(p, " <<<k");
+	p = isl_printer_print_int(p, kernel->id);
+	p = isl_printer_print_str(p, "_dimGrid, k");
+	p = isl_printer_print_int(p, kernel->id);
+	p = isl_printer_print_str(p, "_dimBlock>>> (");
+	p = print_kernel_arguments(p, prog, kernel, 0);
+	p = isl_printer_print_str(p, ");");
+	p = isl_printer_end_line(p);
+
+	p = isl_printer_start_line(p);
+	p = isl_printer_print_str(p, "cudaCheckKernel();");
+	p = isl_printer_end_line(p);
+
+	p = ppcg_end_block(p);
+
+  return p;
+}
+
 /* Print the user statement of the host code to "p".
  *
  * The host code may contain original user statements, kernel launches,
@@ -621,41 +689,18 @@ static __isl_give isl_printer *print_host_user(__isl_take isl_printer *p,
 	if (is_user)
 		return ppcg_kernel_print_domain(p, stmt);
 
+	if (try_print_stencil_kernel(data->prog, kernel, data->cuda) > 0)
+		return p;
+
+	print_kernel(data->prog, kernel, data->cuda);
+
 	p = ppcg_start_block(p);
-
-	p = isl_printer_start_line(p);
-	p = isl_printer_print_str(p, "dim3 k");
-	p = isl_printer_print_int(p, kernel->id);
-	p = isl_printer_print_str(p, "_dimBlock");
-	print_reverse_list(isl_printer_get_file(p),
-				kernel->n_block, kernel->block_dim);
-	p = isl_printer_print_str(p, ";");
-	p = isl_printer_end_line(p);
-
-	p = print_grid(p, kernel);
-
-	p = isl_printer_start_line(p);
-	p = isl_printer_print_str(p, "kernel");
-	p = isl_printer_print_int(p, kernel->id);
-	p = isl_printer_print_str(p, " <<<k");
-	p = isl_printer_print_int(p, kernel->id);
-	p = isl_printer_print_str(p, "_dimGrid, k");
-	p = isl_printer_print_int(p, kernel->id);
-	p = isl_printer_print_str(p, "_dimBlock>>> (");
-	p = print_kernel_arguments(p, data->prog, kernel, 0);
-	p = isl_printer_print_str(p, ");");
-	p = isl_printer_end_line(p);
-
-	p = isl_printer_start_line(p);
-	p = isl_printer_print_str(p, "cudaCheckKernel();");
-	p = isl_printer_end_line(p);
-
+	p = print_grid_and_block(p, kernel);
+	p = print_launch(p, data->prog, kernel);
 	p = ppcg_end_block(p);
 
 	p = isl_printer_start_line(p);
 	p = isl_printer_end_line(p);
-
-	print_kernel(data->prog, kernel, data->cuda);
 
 	return p;
 }

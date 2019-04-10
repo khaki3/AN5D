@@ -21,14 +21,15 @@ ACLOCAL_AMFLAGS = -I m4
 LIB_ISL = $(ISL_LA) @ISL_LIBS@
 LIB_PET = $(PET_LA) @PET_LIBS@
 
-AM_CPPFLAGS = @ISL_CFLAGS@ @PET_CFLAGS@
+AM_CPPFLAGS = -std=c99 @ISL_CFLAGS@ @PET_CFLAGS@
 LDADD = $(LIB_PET) $(LIB_ISL)
 
-bin_PROGRAMS = ppcg
-ppcg_SOURCES = \
+bin_PROGRAMS = an5d
+an5d_SOURCES = \
 	cpu.c \
 	cpu.h \
 	cuda.c \
+	cuda_stencil.c \
 	cuda.h \
 	opencl.c \
 	opencl.h \

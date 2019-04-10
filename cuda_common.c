@@ -9,7 +9,7 @@
  */
 
 #include <ctype.h>
-#include <limits.h>
+#include <linux/limits.h>
 #include <string.h>
 
 #include "cuda_common.h"
