@@ -11,7 +11,7 @@ Requirements:
 	Unless you have some other reasons for wanting to use the svn version,
 	it is best to install the latest release (3.9).
 	For more details, see pet/README.
-- GCC, 4.9 or lower
+- GCC, 4.8 ~ 4.9
 	For ABI compatibility with LLVM.
 
 If you are installing on Ubuntu, then you can install the following packages:
