@@ -30,8 +30,8 @@ Grab the latest release and extract it or get the source from
 the git repository as follows.  This process requires autoconf,
 automake, libtool and pkg-config.
 
-	git clone git://repo.or.cz/ppcg.git
-	cd ppcg
+	git clone https://github.com/khaki3/AN5D
+	cd AN5D
 	./get_submodules.sh
 	./autogen.sh
 
