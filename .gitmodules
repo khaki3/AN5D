@@ -4,5 +4,5 @@
 	ignore = dirty
 [submodule "pet"]
 	path = pet
-	url = git@github.com:khaki3/pet.git
+	url = git://github.com/khaki3/pet.git
 	ignore = dirty
