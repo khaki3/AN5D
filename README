@@ -7,10 +7,7 @@ Requirements:
 - gmp (http://gmplib.org/)
 - libyaml (http://pyyaml.org/wiki/LibYAML)
 	(only needed if you want to compile the pet executable)
-- LLVM/clang libraries, 3.4 ~ 3.9 (http://clang.llvm.org/get_started.html)
-	Unless you have some other reasons for wanting to use the svn version,
-	it is best to install the latest release (3.9).
-	For more details, see pet/README.
+- LLVM/clang libraries, 3.4.2
 - GCC, 4.8 ~ 4.9
 	For ABI compatibility with LLVM.
 
